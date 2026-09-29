@@ -1,8 +1,11 @@
-/* Socle de départ — styles minimaux. À vous de faire l'identité visuelle. */
 :root {
-  --fond: #0b1326;
-  --texte: #dae2fd;
+  --bg: #0b1326;
+  --text: #dae2fd;
   --accent: #22d3ee;
+  --border: #24304d;
+  --surface: #101a33;
+  --text-soft: #93a1c4;
+  --error: #ff9aa9;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -10,12 +13,12 @@
 
 body {
   margin: 0;
-  background: var(--fond);
-  color: var(--texte);
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
 }
 
-header, section.etat, main, footer {
+header, section.panel, main {
   max-width: 960px;
   margin: 0 auto;
   padding: 1rem 1.25rem;
@@ -23,15 +26,35 @@ header, section.etat, main, footer {
 
 header { padding-top: 2rem; }
 h1 { margin: 0; font-size: 2.2rem; letter-spacing: 0.02em; }
-.sous-titre { color: #93a1c4; margin-top: 0.25rem; }
+.subtitle { color: var(--text-soft); margin-top: 0.25rem; }
 
-section.etat {
-  border: 1px solid #24304d;
+section.panel {
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: #101a33;
+  background: var(--surface);
+  margin-bottom: 1.5rem;
 }
 
 main { min-height: 40vh; }
-.vide { color: #7b88a8; font-style: italic; }
+.empty { color: #7b88a8; font-style: italic; }
 
-footer { color: #7b88a8; font-size: 0.85rem; border-top: 1px solid #24304d; }
+.header { display: flex; justify-content: space-between; align-items: center; }
+.account { display: flex; gap: 0.75rem; align-items: center; }
+
+.button {
+  font: inherit;
+  padding: 0.6rem 1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #06202a;
+  font-weight: 600;
+  cursor: pointer;
+}
+.button-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.error { color: var(--error); margin: 0.75rem 0 0; }
