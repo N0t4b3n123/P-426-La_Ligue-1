@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import Login from "./components/Login.vue";
 import AdminCreateTournament from "./components/AdminCreateTournament.vue";
 import CaptainRegisterTeam from "./components/CaptainRegisterTeam.vue";
+import OrganizerRegistrations from "./components/OrganizerRegistrations.vue";
 import { testTournaments, STATUSES } from "./data/tournaments.js";
 import {
   testRegistrations,
@@ -66,6 +67,15 @@ function addTournament(data) {
 function addRegistration(registration) {
   registrations.value.push(registration);
 }
+
+function reviewRegistration({ id, status, refusalComment }) {
+  const registration = registrations.value.find((r) => r.id === id);
+
+  if (!registration) return;
+
+  registration.status = status;
+  registration.refusalComment = refusalComment;
+}
 </script>
 
 <template>
@@ -87,6 +97,12 @@ function addRegistration(registration) {
       <AdminCreateTournament
         v-if="role === 'organizer'"
         @created="addTournament"
+      />
+      <OrganizerRegistrations
+        v-if="role === 'organizer'"
+        :registrations="registrations"
+        :tournaments="tournaments"
+        @reviewed="reviewRegistration"
       />
 
       <CaptainRegisterTeam
