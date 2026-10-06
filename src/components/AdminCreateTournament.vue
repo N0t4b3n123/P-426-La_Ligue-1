@@ -79,21 +79,34 @@ function submit() {
 form {
   display: grid;
   gap: 0.4rem;
-  max-width: 420px;
+  max-width: 440px;
 }
 label {
   margin-top: 0.6rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
 }
 input {
   font: inherit;
-  padding: 0.65rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--field);
   color: var(--text);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input::placeholder {
+  color: var(--text-muted);
+}
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.35);
 }
 form .button {
   margin-top: 1rem;
+  justify-self: start;
 }
 </style>

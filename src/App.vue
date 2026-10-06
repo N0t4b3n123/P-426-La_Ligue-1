@@ -141,18 +141,41 @@ function addRegistration(registration) {
 .list {
   list-style: none;
   padding: 0;
+  margin: 0 0 2rem;
   display: grid;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 .list li {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
-  padding: 0.7rem 0.9rem;
+  padding: 1rem 1.25rem;
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent);
   border-radius: 8px;
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.list li:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+.list li > span {
+  color: var(--text-soft);
+}
+.list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.list .button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 </style>

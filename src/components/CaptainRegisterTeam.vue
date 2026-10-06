@@ -121,19 +121,35 @@ function submit() {
 form {
   display: grid;
   gap: 0.4rem;
-  max-width: 420px;
+  max-width: 440px;
 }
 label {
   margin-top: 0.6rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text);
 }
 input {
   font: inherit;
-  padding: 0.65rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--field);
   color: var(--text);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input::placeholder {
+  color: var(--text-muted);
+}
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99, 91, 255, 0.35);
+}
+form .button {
+  margin-top: 1rem;
+  justify-self: start;
 }
 fieldset {
   margin: 0.8rem 0 0;
@@ -143,7 +159,8 @@ fieldset {
   gap: 0.5rem;
 }
 legend {
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 500;
   margin-bottom: 0.4rem;
 }
 .player-row {
@@ -161,33 +178,52 @@ legend {
   overflow: hidden;
   clip: rect(0 0 0 0);
 }
-.add,
+.add {
+  justify-self: start;
+  font: inherit;
+  font-weight: 600;
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  cursor: pointer;
+}
+.add:hover {
+  text-decoration: underline;
+}
 .remove {
   font: inherit;
   cursor: pointer;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--field);
+  color: var(--text-soft);
+  transition: color 0.15s, border-color 0.15s;
 }
-.add {
-  justify-self: start;
+.remove:hover {
+  color: var(--error);
+  border-color: var(--error);
 }
-.add:disabled,
-.remove:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.hint {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 0.9rem;
 }
-.hint,
 .notice {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-soft);
   color: var(--text-soft);
 }
 .success {
-  color: var(--text);
-  font-weight: 600;
-}
-form .button {
-  margin-top: 1rem;
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--success-border);
+  border-radius: 6px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 500;
 }
 </style>
