@@ -71,4 +71,7 @@ Le backlog couvre l'intégralité du cycle de vie d'un tournoi : de sa création
 - Processus de création de compte (le backlog ne couvre que la connexion).
 - Règles de gestion des cas particuliers (départage d'un ex-aequo, liste d'attente si le tournoi est complet).
 - Critère exact du classement des équipes (victoires cumulées vs. stade d'élimination atteint).
+
+on a fait us 2 et 3 
+
 >>>>>>> 5a99e03f84ff2439d850acc7523d103c750d1a2a
