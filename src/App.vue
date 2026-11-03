@@ -6,6 +6,7 @@ import CaptainRegisterTeam from "./components/CaptainRegisterTeam.vue";
 import OrganizerRegistrations from "./components/OrganizerRegistrations.vue";
 import OrganizerBracket from "./components/OrganizerBracket.vue";
 import OrganizerDeadlines from "./components/OrganizerDeadlines.vue";
+import OrganizerMatches from "./components/OrganizerMatches.vue";
 import { testTournaments, STATUSES } from "./data/tournaments.js";
 import {
   testRegistrations,
@@ -13,6 +14,8 @@ import {
   activeRegistrations,
   isDeadlinePassed,
 } from "./data/registrations.js";
+
+import { testPredictions } from "./data/matches.js";
 
 const ROLES = {
   organizer: "Organizer",
@@ -24,6 +27,12 @@ const user = ref(null);
 const tournaments = ref([...testTournaments]);
 const registrations = ref([...testRegistrations]);
 const selectedTournamentId = ref(null);
+
+const predictions = ref(
+  testPredictions.map((prediction) => ({
+    ...prediction,
+  })),
+);
 
 const isLoggedIn = computed(() => user.value !== null);
 const role = computed(() => user.value?.role);
@@ -129,11 +138,13 @@ function setBracket({ tournamentId, bracket }) {
         @reviewed="reviewRegistration"
       />
       <OrganizerBracket
-        v-if="role === 'organizer'"
+        v-if="role === 'organizer' && bracket"
         :tournaments="tournaments"
         :registrations="registrations"
         :account="user"
         @generated="setBracket"
+        :bracket="bracket"
+        :predictions="predictions"
       />
 
       <CaptainRegisterTeam
