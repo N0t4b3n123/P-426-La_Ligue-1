@@ -26,3 +26,26 @@ export const testTournaments = [
     organizer: 'Alex Organizer',
   },
 ];
+
+/**
+ * Validates a new registration deadline (format YYYY-MM-DD).
+ * Past dates are allowed on purpose: the organizer can close registrations early.
+ */
+export function updateRegistrationDeadline(tournament, account, newDeadline) {
+  if (account?.role !== 'organizer') {
+    return { ok: false, error: 'Only an organizer can change a deadline.' };
+  }
+  if (tournament.status !== 'registration_open') {
+    return {
+      ok: false,
+      error: 'The deadline can no longer be changed: registrations are closed.',
+    };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(newDeadline ?? '') || Number.isNaN(Date.parse(newDeadline))) {
+    return { ok: false, error: 'Please enter a valid date.' };
+  }
+  if (tournament.date && newDeadline > tournament.date) {
+    return { ok: false, error: 'The deadline cannot be after the tournament date.' };
+  }
+  return { ok: true, registrationDeadline: newDeadline };
+}
