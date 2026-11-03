@@ -1,5 +1,5 @@
 // Bracket generation: rules + random draw (no UI here, easy to test).
-import { isDeadlinePassed } from './registrations.js';
+import { isDeadlinePassed } from "./registrations.js";
 
 export const MIN_TEAMS = 2;
 
@@ -25,13 +25,13 @@ export function shuffle(items, rng = Math.random) {
 
 export function validatedRegistrations(registrations, tournamentId) {
   return registrations.filter(
-    (r) => r.tournamentId === tournamentId && r.status === 'accepted',
+    (r) => r.tournamentId === tournamentId && r.status === "accepted",
   );
 }
 
 /** Registrations are closed once the deadline has passed or the tournament left "registration_open". */
 export function isRegistrationClosed(tournament, now = new Date()) {
-  if (tournament.status !== 'registration_open') return true;
+  if (tournament.status !== "registration_open") return true;
   // No deadline set: the organizer decides when to close by generating the bracket.
   if (!tournament.registrationDeadline) return true;
   return isDeadlinePassed(tournament, now);
@@ -39,9 +39,9 @@ export function isRegistrationClosed(tournament, now = new Date()) {
 
 export function roundName(round, totalRounds) {
   const teamsInRound = 2 ** (totalRounds - round + 1);
-  if (teamsInRound === 2) return 'Final';
-  if (teamsInRound === 4) return 'Semi-finals';
-  if (teamsInRound === 8) return 'Quarter-finals';
+  if (teamsInRound === 2) return "Final";
+  if (teamsInRound === 4) return "Semi-finals";
+  if (teamsInRound === 8) return "Quarter-finals";
   return `Round of ${teamsInRound}`;
 }
 
@@ -73,7 +73,11 @@ export function buildBracket(teams, rng = Math.random) {
       team1,
       team2,
       bye: isBye,
+      score1: null,
+      score2: null,
+      status: isBye ? "bye" : "pending",
       winner: isBye ? team1 : null,
+      history: [],
     });
   }
 
@@ -87,7 +91,11 @@ export function buildBracket(teams, rng = Math.random) {
         team1: null,
         team2: null,
         bye: false,
+        score1: null,
+        score2: null,
+        status: "pending",
         winner: null,
+        history: [],
       })),
     );
   }
@@ -97,7 +105,7 @@ export function buildBracket(teams, rng = Math.random) {
     firstRound.forEach((m) => {
       if (!m.bye) return;
       const target = rounds[1][Math.floor(m.index / 2)];
-      target[m.index % 2 === 0 ? 'team1' : 'team2'] = m.winner;
+      target[m.index % 2 === 0 ? "team1" : "team2"] = m.winner;
     });
   }
 
@@ -112,11 +120,11 @@ export function buildBracket(teams, rng = Math.random) {
 
 /** Returns a reason why the bracket cannot be generated yet, or null. */
 export function bracketBlocker(tournament, registrations, now = new Date()) {
-  if (tournament.status === 'finished') {
-    return 'This tournament is finished.';
+  if (tournament.status === "finished") {
+    return "This tournament is finished.";
   }
   if (!tournament.bracket && !isRegistrationClosed(tournament, now)) {
-    return 'Registrations are still open.';
+    return "Registrations are still open.";
   }
   if (validatedRegistrations(registrations, tournament.id).length < MIN_TEAMS) {
     return `At least ${MIN_TEAMS} validated teams are required.`;
@@ -134,8 +142,8 @@ export function generateBracket(
   account,
   { confirmed = false, rng = Math.random, now = new Date() } = {},
 ) {
-  if (account?.role !== 'organizer') {
-    return { ok: false, error: 'Only an organizer can generate a bracket.' };
+  if (account?.role !== "organizer") {
+    return { ok: false, error: "Only an organizer can generate a bracket." };
   }
 
   const blocker = bracketBlocker(tournament, registrations, now);
@@ -145,7 +153,7 @@ export function generateBracket(
     return {
       ok: false,
       needsConfirmation: true,
-      error: 'A bracket already exists for this tournament.',
+      error: "A bracket already exists for this tournament.",
     };
   }
 
