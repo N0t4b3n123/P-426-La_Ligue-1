@@ -4,6 +4,7 @@ import Login from "./components/Login.vue";
 import AdminCreateTournament from "./components/AdminCreateTournament.vue";
 import CaptainRegisterTeam from "./components/CaptainRegisterTeam.vue";
 import OrganizerRegistrations from "./components/OrganizerRegistrations.vue";
+import OrganizerMatches from "./components/OrganizerMatches.vue";
 import { testTournaments, STATUSES } from "./data/tournaments.js";
 import {
   testRegistrations,
@@ -11,6 +12,8 @@ import {
   activeRegistrations,
   isDeadlinePassed,
 } from "./data/registrations.js";
+
+import { testPredictions } from "./data/matches.js";
 
 const ROLES = {
   organizer: "Organizer",
@@ -22,6 +25,12 @@ const user = ref(null);
 const tournaments = ref([...testTournaments]);
 const registrations = ref([...testRegistrations]);
 const selectedTournamentId = ref(null);
+
+const predictions = ref(
+  testPredictions.map((prediction) => ({
+    ...prediction,
+  })),
+);
 
 const isLoggedIn = computed(() => user.value !== null);
 const role = computed(() => user.value?.role);
@@ -104,6 +113,11 @@ function reviewRegistration({ id, status, refusalComment }) {
         :tournaments="tournaments"
         @reviewed="reviewRegistration"
       />
+      <OrganizerMatches
+        v-if="role === 'organizer' && bracket"
+        :bracket="bracket"
+        :predictions="predictions"
+      />
 
       <CaptainRegisterTeam
         v-if="role === 'captain' && selectedTournament"
@@ -171,7 +185,9 @@ function reviewRegistration({ id, status, refusalComment }) {
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 .list li:hover {
   box-shadow: var(--shadow-md);
