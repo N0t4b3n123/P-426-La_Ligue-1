@@ -4,6 +4,8 @@ import Login from "./components/Login.vue";
 import AdminCreateTournament from "./components/AdminCreateTournament.vue";
 import CaptainRegisterTeam from "./components/CaptainRegisterTeam.vue";
 import OrganizerRegistrations from "./components/OrganizerRegistrations.vue";
+import OrganizerBracket from "./components/OrganizerBracket.vue";
+import OrganizerDeadlines from "./components/OrganizerDeadlines.vue";
 import { testTournaments, STATUSES } from "./data/tournaments.js";
 import {
   testRegistrations,
@@ -76,6 +78,22 @@ function reviewRegistration({ id, status, refusalComment }) {
   registration.status = status;
   registration.refusalComment = refusalComment;
 }
+
+function setDeadline({ tournamentId, registrationDeadline }) {
+  const tournament = tournaments.value.find((t) => t.id === tournamentId);
+  if (!tournament) return;
+
+  tournament.registrationDeadline = registrationDeadline;
+}
+
+/** Stores the bracket and closes registrations automatically. */
+function setBracket({ tournamentId, bracket }) {
+  const tournament = tournaments.value.find((t) => t.id === tournamentId);
+  if (!tournament) return;
+
+  tournament.bracket = bracket;
+  tournament.status = "in_progress"; // registrationState() => 'closed'
+}
 </script>
 
 <template>
@@ -98,11 +116,24 @@ function reviewRegistration({ id, status, refusalComment }) {
         v-if="role === 'organizer'"
         @created="addTournament"
       />
+      <OrganizerDeadlines
+        v-if="role === 'organizer'"
+        :tournaments="tournaments"
+        :account="user"
+        @deadline-updated="setDeadline"
+      />
       <OrganizerRegistrations
         v-if="role === 'organizer'"
         :registrations="registrations"
         :tournaments="tournaments"
         @reviewed="reviewRegistration"
+      />
+      <OrganizerBracket
+        v-if="role === 'organizer'"
+        :tournaments="tournaments"
+        :registrations="registrations"
+        :account="user"
+        @generated="setBracket"
       />
 
       <CaptainRegisterTeam
@@ -126,7 +157,11 @@ function reviewRegistration({ id, status, refusalComment }) {
             </template>
           </span>
           <button
-            v-if="role === 'captain' && !isDeadlinePassed(t)"
+            v-if="
+              role === 'captain' &&
+              t.status === 'registration_open' &&
+              !isDeadlinePassed(t)
+            "
             class="button button-ghost"
             @click="selectedTournamentId = t.id"
           >
@@ -171,7 +206,9 @@ function reviewRegistration({ id, status, refusalComment }) {
   border-radius: 8px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition:
+    box-shadow 0.15s,
+    border-color 0.15s;
 }
 .list li:hover {
   box-shadow: var(--shadow-md);
