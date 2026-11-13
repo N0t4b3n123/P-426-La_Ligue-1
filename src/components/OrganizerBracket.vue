@@ -68,6 +68,16 @@ function generate(t, confirmed = false) {
 
   pendingConfirmId.value = null;
   emit("generated", { tournamentId: t.id, bracket: result.bracket });
+  successes.value[t.id] = confirmed
+    ? "Bracket regenerated. Registrations stay closed."
+    : "Bracket generated. Registrations are now closed.";
+}
+
+/** True if at least one score was already entered (a regeneration would erase it). */
+function hasPlayedMatches(t) {
+  return !!t.bracket?.rounds.some((round) =>
+    round.some((m) => m.status === "finished"),
+  );
 }
 
 function submitScore(t, match) {
@@ -142,6 +152,9 @@ function submitScore(t, match) {
           <p>
             <strong>Warning:</strong> a new draw will replace the current
             bracket. This cannot be undone.
+            <template v-if="hasPlayedMatches(t)">
+              Scores already entered will be lost.
+            </template>
           </p>
           <div class="actions">
             <button
