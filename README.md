@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # La Ligue — socle de départ
 
 Ce dossier est votre point de départ pour le projet **La Ligue** (module I426 / projet P_DEV-426).
@@ -37,7 +36,9 @@ Pour produire une version compilée : `npm run build`.
 
 Chaque tâche est committée **individuellement** et poussée sur votre dépôt — c'est ce qui rend le
 travail de chacun visible en revue et dans la note de processus.
-=======
+
+---
+
 # Description du projet — La Ligue (module I426)
 
 **La Ligue** est une plateforme web de gestion et de suivi de tournois esport, développée pour permettre à des organisateurs de créer et piloter des compétitions par élimination directe, tout en offrant aux spectateurs une expérience communautaire interactive autour de ces tournois.
@@ -71,4 +72,5 @@ Le backlog couvre l'intégralité du cycle de vie d'un tournoi : de sa création
 - Processus de création de compte (le backlog ne couvre que la connexion).
 - Règles de gestion des cas particuliers (départage d'un ex-aequo, liste d'attente si le tournoi est complet).
 - Critère exact du classement des équipes (victoires cumulées vs. stade d'élimination atteint).
->>>>>>> 5a99e03f84ff2439d850acc7523d103c750d1a2a
+
+on a fait us 2 et 3
