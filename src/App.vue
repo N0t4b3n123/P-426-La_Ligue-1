@@ -55,6 +55,8 @@ function tournamentName(id) {
   return tournaments.value.find((t) => t.id === id)?.name ?? "?";
 }
 
+
+
 function addTournament(data) {
   tournaments.value.push({
     id: Date.now(),
