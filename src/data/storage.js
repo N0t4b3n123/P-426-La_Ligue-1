@@ -5,6 +5,7 @@
 export const STORAGE_KEYS = {
   tournaments: "laligue:tournaments",
   registrations: "laligue:registrations",
+  predictions: "laligue:predictions",
 };
 
 function defaultStorage() {

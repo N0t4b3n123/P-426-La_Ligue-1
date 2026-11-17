@@ -6,7 +6,7 @@ import {
   roundName,
   validatedRegistrations,
 } from "../data/brackets.js";
-import { MATCH_STATUSES, saveBracketMatchScore } from "../data/matches.js";
+import { MATCH_STATUSES, saveBracketMatchScore, startBracketMatch } from "../data/matches.js";
 
 const props = defineProps({
   tournaments: { type: Array, required: true },
@@ -14,7 +14,7 @@ const props = defineProps({
   account: { type: Object, required: true },
 });
 
-const emit = defineEmits(["generated"]);
+const emit = defineEmits(["generated", "match-started"]);
 
 const errors = ref({});
 const successes = ref({});
@@ -78,6 +78,18 @@ function hasPlayedMatches(t) {
   return !!t.bracket?.rounds.some((round) =>
     round.some((m) => m.status === "finished"),
   );
+}
+
+function startMatch(t, match) {
+  errors.value[t.id] = "";
+  successes.value[t.id] = "";
+  const result = startBracketMatch(t.bracket, match.id, props.account);
+  if (!result.ok) {
+    errors.value[t.id] = result.error;
+    return;
+  }
+  emit("match-started", { tournamentId: t.id, matchId: match.id });
+  successes.value[t.id] = `Match ${match.index + 1} started. Predictions are now closed.`;
 }
 
 function submitScore(t, match) {
@@ -194,7 +206,7 @@ function submitScore(t, match) {
                 <div class="match-title">
                   <span>Match {{ m.index + 1 }}</span>
                   <span class="match-status">
-                    {{ MATCH_STATUSES[m.status] ?? "Not played" }}
+                    {{ m.status === "finished" ? MATCH_STATUSES.finished : (m.started ? "In progress" : MATCH_STATUSES.pending) }}
                   </span>
                 </div>
 
@@ -236,6 +248,16 @@ function submitScore(t, match) {
                     step="1"
                     aria-label="Team 2 score"
                   />
+                </div>
+
+                <div v-if="m.team1 && m.team2 && !m.bye && !m.started && m.status !== 'finished'" class="score-actions">
+                  <button
+                    class="button button-ghost score-button"
+                    type="button"
+                    @click="startMatch(t, m)"
+                  >
+                    Démarrer le match
+                  </button>
                 </div>
 
                 <div v-if="m.team1 && m.team2 && !m.bye" class="score-actions">

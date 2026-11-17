@@ -42,7 +42,7 @@ test("BDD 2 — à venir / en cours / terminé", () => {
   const [semi1, semi2] = b.rounds[0];
   const final = b.rounds[1][0];
 
-  assert.equal(spectatorStatus(semi1), "in_progress"); // 2 équipes connues, pas de score
+  assert.equal(spectatorStatus(semi1), "upcoming"); // match pas encore démarré\n  semi1.started = true;\n  assert.equal(spectatorStatus(semi1), "in_progress");
   assert.equal(spectatorStatus(final), "upcoming"); // qualifiés pas encore connus
 
   saveBracketMatchScore(b, semi1.id, 2, 1);
@@ -50,7 +50,7 @@ test("BDD 2 — à venir / en cours / terminé", () => {
   assert.equal(spectatorStatus(final), "upcoming"); // une seule équipe qualifiée
 
   saveBracketMatchScore(b, semi2.id, 0, 3);
-  assert.equal(spectatorStatus(final), "in_progress"); // les 2 finalistes sont connus
+  assert.equal(spectatorStatus(final), "upcoming"); // finalistes connus, match pas encore démarré
 });
 
 test("BDD 2 — un bye est affiché comme tel (pas comme un match à jouer)", () => {
@@ -80,7 +80,7 @@ test("BDD 3 — un score invalide (égalité) ne modifie pas le bracket affiché
   const res = saveBracketMatchScore(b, m.id, 2, 2);
   assert.equal(res.ok, false);
   assert.equal(m.score1, null);
-  assert.equal(spectatorStatus(m), "in_progress");
+  assert.equal(spectatorStatus(m), "upcoming");
 });
 
 test("BDD 4 — après rafraîchissement (rechargement du stockage), le score est toujours là", () => {
