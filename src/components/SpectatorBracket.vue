@@ -4,6 +4,7 @@ import { roundName } from "../data/brackets.js";
 import { SPECTATOR_STATUSES, spectatorStatus } from "../data/matches.js";
 import { getPrediction, savePrediction } from "../data/predictions.js";
 import { STATUSES } from "../data/tournaments.js";
+import { calculateRanking } from "../data/rankings.js";
 
 // Read-only public view: no login required, no input, no action.
 const props = defineProps({
@@ -26,6 +27,10 @@ const selected = computed(
     null,
 );
 
+const ranking = computed(() => {
+  return calculateRanking(selected.value?.bracket);
+});
+
 const champion = computed(() => {
   const rounds = selected.value?.bracket?.rounds;
   const final = rounds?.[rounds.length - 1]?.[0];
@@ -34,7 +39,12 @@ const champion = computed(() => {
 
 function myPrediction(match) {
   if (!props.account) return null;
-  return getPrediction(props.predictions, props.account.id, selected.value?.id, match.id);
+  return getPrediction(
+    props.predictions,
+    props.account.id,
+    selected.value?.id,
+    match.id,
+  );
 }
 
 function submitPrediction(match) {
@@ -94,14 +104,67 @@ function isWinner(match, team) {
       </p>
 
       <p v-if="!selected.bracket" class="empty">
-        The bracket has not been generated yet. Come back once registrations
-        are closed.
+        The bracket has not been generated yet. Come back once registrations are
+        closed.
       </p>
 
       <template v-else>
         <p v-if="champion" class="champion">
           🏆 Champion: <strong>{{ champion.name }}</strong>
         </p>
+
+        <section class="ranking">
+          <h3>Classement des équipes</h3>
+
+          <p class="meta">
+            Critères : progression dans le bracket, puis différence de buts
+            cumulée (marqués - encaissés).
+          </p>
+
+          <div class="ranking-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rang</th>
+                  <th>Équipe</th>
+                  <th>Progression</th>
+                  <th>Buts +</th>
+                  <th>Buts -</th>
+                  <th>Diff.</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr v-for="team in ranking" :key="team.id">
+                  <td>{{ team.rank }}</td>
+                  <td>{{ team.name }}</td>
+                  <td>
+                    {{
+                      team.champion
+                        ? "Champion"
+                        : team.eliminated
+                          ? "Éliminée"
+                          : "En course"
+                    }}
+                    -
+                    {{
+                      roundName(
+                        team.roundReached,
+                        selected.bracket.rounds.length,
+                      )
+                    }}
+                  </td>
+                  <td>{{ team.goalsFor }}</td>
+                  <td>{{ team.goalsAgainst }}</td>
+                  <td>
+                    {{ team.goalDifference > 0 ? "+" : ""
+                    }}{{ team.goalDifference }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <p class="swipe-hint">Swipe sideways to see the next rounds →</p>
 
@@ -144,7 +207,10 @@ function isWinner(match, team) {
 
               <div
                 class="team"
-                :class="{ winner: isWinner(m, m.team2), tbd: !m.team2 || m.bye }"
+                :class="{
+                  winner: isWinner(m, m.team2),
+                  tbd: !m.team2 || m.bye,
+                }"
               >
                 <span class="name">
                   {{ m.bye ? "BYE" : (m.team2?.name ?? "TBD") }}
@@ -152,45 +218,72 @@ function isWinner(match, team) {
                 <span class="score">{{ m.bye ? "" : (m.score2 ?? "–") }}</span>
               </div>
 
-              <p v-if="isWinner(m, m.team1) || isWinner(m, m.team2)" class="winner-line">
+              <p
+                v-if="isWinner(m, m.team1) || isWinner(m, m.team2)"
+                class="winner-line"
+              >
                 Winner: {{ m.winner.name }}
               </p>
 
               <div
-                v-if="account?.role === 'spectator' && m.team1 && m.team2 && !m.bye"
+                v-if="
+                  account?.role === 'spectator' && m.team1 && m.team2 && !m.bye
+                "
                 class="prediction"
               >
                 <template v-if="m.started || m.status === 'finished'">
-                  <p class="prediction-closed">Pronostics fermés : le match a commencé.</p>
+                  <p class="prediction-closed">
+                    Pronostics fermés : le match a commencé.
+                  </p>
                   <p v-if="myPrediction(m)" class="prediction-current">
-                    Votre pronostic : <strong>{{ myPrediction(m).teamName }}</strong>
+                    Votre pronostic :
+                    <strong>{{ myPrediction(m).teamName }}</strong>
                   </p>
                 </template>
                 <template v-else>
                   <label>
-                    {{ myPrediction(m) ? "Modifier mon pronostic" : "Pronostiquer le vainqueur" }}
+                    {{
+                      myPrediction(m)
+                        ? "Modifier mon pronostic"
+                        : "Pronostiquer le vainqueur"
+                    }}
                     <select
-                      :value="drafts[m.id] ?? myPrediction(m)?.teamRegistrationId ?? ''"
+                      :value="
+                        drafts[m.id] ??
+                        myPrediction(m)?.teamRegistrationId ??
+                        ''
+                      "
                       @change="drafts[m.id] = Number($event.target.value)"
                     >
                       <option value="" disabled>Choisir une équipe</option>
-                      <option :value="m.team1.registrationId">{{ m.team1.name }}</option>
-                      <option :value="m.team2.registrationId">{{ m.team2.name }}</option>
+                      <option :value="m.team1.registrationId">
+                        {{ m.team1.name }}
+                      </option>
+                      <option :value="m.team2.registrationId">
+                        {{ m.team2.name }}
+                      </option>
                     </select>
                   </label>
                   <button
                     class="button score-button"
                     type="button"
-                    :disabled="!(drafts[m.id] ?? myPrediction(m)?.teamRegistrationId)"
+                    :disabled="
+                      !(drafts[m.id] ?? myPrediction(m)?.teamRegistrationId)
+                    "
                     @click="submitPrediction(m)"
                   >
                     Valider mon pronostic
                   </button>
                   <p v-if="myPrediction(m)" class="prediction-current">
-                    Pronostic actuel : <strong>{{ myPrediction(m).teamName }}</strong>
+                    Pronostic actuel :
+                    <strong>{{ myPrediction(m).teamName }}</strong>
                   </p>
                 </template>
-                <p v-if="predictionMessages[m.id]" class="prediction-message" role="status">
+                <p
+                  v-if="predictionMessages[m.id]"
+                  class="prediction-message"
+                  role="status"
+                >
                   {{ predictionMessages[m.id] }}
                 </p>
               </div>
@@ -276,10 +369,18 @@ function isWinner(match, team) {
   overflow: hidden;
   background: var(--field);
 }
-.match.is-finished { border-left-color: var(--success); }
-.match.is-in_progress { border-left-color: var(--accent); }
-.match.is-upcoming { border-left-color: var(--border-strong); }
-.match.is-bye { border-left-color: var(--text-muted); }
+.match.is-finished {
+  border-left-color: var(--success);
+}
+.match.is-in_progress {
+  border-left-color: var(--accent);
+}
+.match.is-upcoming {
+  border-left-color: var(--border-strong);
+}
+.match.is-bye {
+  border-left-color: var(--text-muted);
+}
 
 .match-title {
   display: flex;
@@ -300,9 +401,19 @@ function isWinner(match, team) {
   font-weight: 600;
   white-space: nowrap;
 }
-.badge-finished { color: var(--success); border-color: var(--success-border); background: var(--success-bg); }
-.badge-in_progress { color: var(--accent-text); border-color: var(--accent); background: var(--accent-soft); }
-.badge-bye { color: var(--text-muted); }
+.badge-finished {
+  color: var(--success);
+  border-color: var(--success-border);
+  background: var(--success-bg);
+}
+.badge-in_progress {
+  color: var(--accent-text);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.badge-bye {
+  color: var(--text-muted);
+}
 
 .team {
   display: grid;
@@ -312,17 +423,29 @@ function isWinner(match, team) {
   min-height: 40px;
   padding: 0.4rem 0.6rem;
 }
-.team + .team { border-top: 1px solid var(--border); }
-.team.tbd { color: var(--text-muted); font-style: italic; }
-.name { overflow-wrap: anywhere; }
+.team + .team {
+  border-top: 1px solid var(--border);
+}
+.team.tbd {
+  color: var(--text-muted);
+  font-style: italic;
+}
+.name {
+  overflow-wrap: anywhere;
+}
 .score {
   min-width: 1.5rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
-.team.winner { color: var(--success); font-weight: 700; }
-.team.winner .name::after { content: " ✓"; }
+.team.winner {
+  color: var(--success);
+  font-weight: 700;
+}
+.team.winner .name::after {
+  content: " ✓";
+}
 
 .winner-line {
   margin: 0;
@@ -346,21 +469,76 @@ function isWinner(match, team) {
   padding: 0.65rem;
   border-top: 1px solid var(--border);
 }
-.prediction label { display: grid; gap: 0.3rem; color: var(--text-soft); font-size: 0.85rem; }
-.prediction select {
-  width: 100%; padding: 0.45rem; border: 1px solid var(--border-strong);
-  border-radius: 6px; background: var(--surface); color: var(--text); font: inherit;
+.prediction label {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
 }
-.prediction p { margin: 0; font-size: 0.82rem; }
-.prediction-closed { color: var(--text-muted); }
-.prediction-current { color: var(--success); }
-.prediction-message { color: var(--accent-text); }
+.prediction select {
+  width: 100%;
+  padding: 0.45rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+.prediction p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+.prediction-closed {
+  color: var(--text-muted);
+}
+.prediction-current {
+  color: var(--success);
+}
+.prediction-message {
+  color: var(--accent-text);
+}
+
+.ranking {
+  margin: 1.5rem 0;
+}
+
+.ranking-scroll {
+  overflow-x: auto;
+}
+
+.ranking table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ranking th,
+.ranking td {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.ranking th {
+  background: var(--field);
+  font-weight: 600;
+}
 
 @media (max-width: 640px) {
-  .swipe-hint { display: block; }
+  .swipe-hint {
+    display: block;
+  }
   /* One round almost fills the screen: names and scores stay readable. */
-  .round { flex-basis: 85%; scroll-snap-align: center; }
-  .rounds { scroll-snap-type: x mandatory; gap: 1rem; }
-  .team { min-height: 44px; font-size: 1rem; }
+  .round {
+    flex-basis: 85%;
+    scroll-snap-align: center;
+  }
+  .rounds {
+    scroll-snap-type: x mandatory;
+    gap: 1rem;
+  }
+  .team {
+    min-height: 44px;
+    font-size: 1rem;
+  }
 }
 </style>
