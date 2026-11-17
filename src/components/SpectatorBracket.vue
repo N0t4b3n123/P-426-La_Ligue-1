@@ -2,12 +2,18 @@
 import { computed, ref } from "vue";
 import { roundName } from "../data/brackets.js";
 import { SPECTATOR_STATUSES, spectatorStatus } from "../data/matches.js";
+import { getPrediction, savePrediction } from "../data/predictions.js";
 import { STATUSES } from "../data/tournaments.js";
 
 // Read-only public view: no login required, no input, no action.
 const props = defineProps({
   tournaments: { type: Array, required: true },
+  account: { type: Object, default: null },
+  predictions: { type: Array, default: () => [] },
 });
+const emit = defineEmits(["prediction-saved"]);
+const drafts = ref({});
+const predictionMessages = ref({});
 
 const selectedId = ref(null);
 
@@ -25,6 +31,30 @@ const champion = computed(() => {
   const final = rounds?.[rounds.length - 1]?.[0];
   return final?.status === "finished" ? final.winner : null;
 });
+
+function myPrediction(match) {
+  if (!props.account) return null;
+  return getPrediction(props.predictions, props.account.id, selected.value?.id, match.id);
+}
+
+function submitPrediction(match) {
+  predictionMessages.value[match.id] = "";
+  const result = savePrediction(
+    props.predictions,
+    selected.value,
+    match,
+    props.account,
+    drafts.value[match.id] ?? myPrediction(match)?.teamRegistrationId,
+  );
+  if (!result.ok) {
+    predictionMessages.value[match.id] = result.error;
+    return;
+  }
+  predictionMessages.value[match.id] = result.updated
+    ? "Your prediction has been updated."
+    : "Your prediction has been saved.";
+  emit("prediction-saved");
+}
 
 function isWinner(match, team) {
   return (
@@ -57,6 +87,10 @@ function isWinner(match, team) {
       <p class="meta">
         <strong>{{ selected.name }}</strong> — {{ selected.game }} ·
         {{ selected.date }} · {{ STATUSES[selected.status] }}
+      </p>
+      <p class="points-notice">
+        Jeu à points uniquement : les pronostics ne rapportent que des points.
+        Aucun argent réel n'est engagé ou misé.
       </p>
 
       <p v-if="!selected.bracket" class="empty">
@@ -121,6 +155,45 @@ function isWinner(match, team) {
               <p v-if="isWinner(m, m.team1) || isWinner(m, m.team2)" class="winner-line">
                 Winner: {{ m.winner.name }}
               </p>
+
+              <div
+                v-if="account?.role === 'spectator' && m.team1 && m.team2 && !m.bye"
+                class="prediction"
+              >
+                <template v-if="m.started || m.status === 'finished'">
+                  <p class="prediction-closed">Pronostics fermés : le match a commencé.</p>
+                  <p v-if="myPrediction(m)" class="prediction-current">
+                    Votre pronostic : <strong>{{ myPrediction(m).teamName }}</strong>
+                  </p>
+                </template>
+                <template v-else>
+                  <label>
+                    {{ myPrediction(m) ? "Modifier mon pronostic" : "Pronostiquer le vainqueur" }}
+                    <select
+                      :value="drafts[m.id] ?? myPrediction(m)?.teamRegistrationId ?? ''"
+                      @change="drafts[m.id] = Number($event.target.value)"
+                    >
+                      <option value="" disabled>Choisir une équipe</option>
+                      <option :value="m.team1.registrationId">{{ m.team1.name }}</option>
+                      <option :value="m.team2.registrationId">{{ m.team2.name }}</option>
+                    </select>
+                  </label>
+                  <button
+                    class="button score-button"
+                    type="button"
+                    :disabled="!(drafts[m.id] ?? myPrediction(m)?.teamRegistrationId)"
+                    @click="submitPrediction(m)"
+                  >
+                    Valider mon pronostic
+                  </button>
+                  <p v-if="myPrediction(m)" class="prediction-current">
+                    Pronostic actuel : <strong>{{ myPrediction(m).teamName }}</strong>
+                  </p>
+                </template>
+                <p v-if="predictionMessages[m.id]" class="prediction-message" role="status">
+                  {{ predictionMessages[m.id] }}
+                </p>
+              </div>
             </article>
           </div>
         </div>
@@ -258,6 +331,30 @@ function isWinner(match, team) {
   color: var(--success);
   font-size: 0.8rem;
 }
+
+.points-notice {
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.prediction {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border-top: 1px solid var(--border);
+}
+.prediction label { display: grid; gap: 0.3rem; color: var(--text-soft); font-size: 0.85rem; }
+.prediction select {
+  width: 100%; padding: 0.45rem; border: 1px solid var(--border-strong);
+  border-radius: 6px; background: var(--surface); color: var(--text); font: inherit;
+}
+.prediction p { margin: 0; font-size: 0.82rem; }
+.prediction-closed { color: var(--text-muted); }
+.prediction-current { color: var(--success); }
+.prediction-message { color: var(--accent-text); }
 
 @media (max-width: 640px) {
   .swipe-hint { display: block; }
