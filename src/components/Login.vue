@@ -51,6 +51,8 @@ function submit() {
         <li><code>organizer</code> / <code>org123</code></li>
         <li><code>captain</code> / <code>cap123</code></li>
         <li><code>spectator</code> / <code>spec123</code></li>
+        <li><code>spectator2</code> / <code>spec456</code></li>
+        <li><code>spectator3</code> / <code>spec789</code></li>
       </ul>
     </details>
   </section>
