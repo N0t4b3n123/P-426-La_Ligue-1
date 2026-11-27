@@ -15,6 +15,7 @@ import OrganizerBracket from "./components/OrganizerBracket.vue";
 import OrganizerDeadlines from "./components/OrganizerDeadlines.vue";
 
 import SpectatorBracket from "./components/SpectatorBracket.vue";
+import PredictionRanking from "./components/PredictionRanking.vue";
 
 import { testTournaments, STATUSES } from "./data/tournaments.js";
 
@@ -62,6 +63,8 @@ const selectedTournamentId = ref(null);
 
 
 const isLoggedIn = computed(() => user.value !== null);
+// The public views (bracket, prediction ranking) stay visible unless the login form is open.
+const showPublicViews = computed(() => isLoggedIn.value || !showLogin.value);
 
 const role = computed(() => user.value?.role);
 
@@ -463,6 +466,13 @@ function setBracket({ tournamentId, bracket }) {
     />
 
     <SpectatorBracket v-else :tournaments="tournaments" :account="null" :predictions="predictions" />
+
+    <PredictionRanking
+      v-if="showPublicViews"
+      :tournaments="tournaments"
+      :predictions="predictions"
+      :account="user"
+    />
 
   </main>
 

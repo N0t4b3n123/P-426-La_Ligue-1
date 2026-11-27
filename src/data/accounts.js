@@ -4,6 +4,8 @@ export const accounts = [
   { id: 1, username: 'organizer', password: 'org123', name: 'Alex Organizer', role: 'organizer' },
   { id: 2, username: 'captain', password: 'cap123', name: 'Camille Captain', role: 'captain' },
   { id: 3, username: 'spectator', password: 'spec123', name: 'Sam Spectator', role: 'spectator' },
+  { id: 4, username: 'spectator2', password: 'spec456', name: 'Léa Spectator', role: 'spectator' },
+  { id: 5, username: 'spectator3', password: 'spec789', name: 'Noah Spectator', role: 'spectator' },
 ];
 
 /** Strips the password before keeping an account in the session. */
